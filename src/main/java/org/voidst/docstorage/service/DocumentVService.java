@@ -10,6 +10,10 @@ import org.voidst.docstorage.dto.DocumentVResponse;
 public interface DocumentVService {
   DocumentV createDocumentV(DocumentVRequest request);
   Chapter createChapter(String documentId, ChapterRequest chapterRequest);
-  List<DocumentVResponse> findAllDocumentV();
+  List<DocumentVResponse> findAllDocumentLazy();
+
+  List<Chapter> findAllChapters();
+
+  List<DocumentVResponse> findAllDocumentEager();
 
 }

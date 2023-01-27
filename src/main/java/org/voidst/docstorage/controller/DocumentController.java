@@ -2,7 +2,9 @@ package org.voidst.docstorage.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -34,18 +36,25 @@ public class DocumentController {
 
   @ResponseStatus(HttpStatus.CREATED)
   @RequestMapping(method = RequestMethod.POST, path = "/{documentId}")
-  public Chapter createChapter(@PathVariable String documentId, @RequestBody ChapterRequest chapterRequest, HttpServletResponse response, HttpServletRequest request){
-    Chapter chapter = documentVServiceImpl.createChapter(documentId,chapterRequest);
+  public Chapter createChapter(@PathVariable String documentId, @RequestBody ChapterRequest chapterRequest, HttpServletResponse response, HttpServletRequest request) {
+    Chapter chapter = documentVServiceImpl.createChapter(documentId, chapterRequest);
     response.setHeader("Location", request.getRequestURI() + "/" + chapter.getId());
     return chapter;
   }
 
   @RequestMapping(method = RequestMethod.GET)
   List<DocumentVResponse> getAllDocuments() {
-    return documentVServiceImpl.findAllDocumentV();
+    return documentVServiceImpl.findAllDocumentLazy();
+  }
+  @RequestMapping(method = RequestMethod.GET, value = "eager")
+  List<DocumentVResponse> getAllDocumentsEager() {
+    return documentVServiceImpl.findAllDocumentEager();
   }
 
-
+  @RequestMapping(value = "/chapters", method = RequestMethod.GET)
+  List<DocumentV> getAllChapters() {
+    return Collections.emptyList();
+  }
   @Autowired
   public void setDocumentVServiceImpl(DocumentVService documentVServiceImpl) {
     this.documentVServiceImpl = documentVServiceImpl;

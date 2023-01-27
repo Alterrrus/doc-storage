@@ -1,8 +1,12 @@
 package org.voidst.docstorage.service;
 
+import com.mongodb.MongoWriteException;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +37,13 @@ public class DocumentVServiceImpl implements DocumentVService {
         .description(request.getDescription())
         .author(request.getAuthor())
         .build();
-    return documentVRepo.save(documentV);
+    DocumentV doc = null;
+    try {
+      doc = documentVRepo.save(documentV);
+    } catch (MongoWriteException e) {
+      log.error("", e);
+    }
+    return doc;
   }
 
   @Override
@@ -41,45 +51,86 @@ public class DocumentVServiceImpl implements DocumentVService {
   public Chapter createChapter(String documentId, ChapterRequest chapterRequest) {
     Optional<DocumentV> documentV = documentVRepo.findById(documentId);
     AtomicReference<Chapter> chapter = new AtomicReference<>();
-    documentV.ifPresent(document -> {
-          chapter.set(Chapter.builder()
-              .chapterTitle(chapterRequest.getChapterTitle())
-              .content(chapterRequest.getContent())
-              .documentV(document)
-              .build());
-          chapterRepo.save(chapter.get());
-        }
-    );
+    try {
+      documentV.ifPresent(document -> {
+            chapter.set(Chapter.builder()
+                .chapterTitle(chapterRequest.getChapterTitle())
+                .content(chapterRequest.getContent())
+                .documentId(document.getId())
+                .build());
+            chapterRepo.save(chapter.get());
+            Set<String> set = document.getChaptersIds();
+            if (set != null && !set.isEmpty()) {
+              set.add(chapter.get().getId());
+            } else {
+              set = new LinkedHashSet<>();
+              set.add(chapter.get().getId());
+            }
+            document.setChaptersIds(set);
+            documentVRepo.save(document);
+          }
+      );
+    } catch (MongoWriteException e) {
+      log.error("", e);
+    }
     return chapter.get();
   }
 
 
   @Override
-  public List<DocumentVResponse> findAllDocumentV() {
-
+  public List<DocumentVResponse> findAllDocumentLazy() {
     return documentVRepo.findAll().stream()
-        .map(this::getDocumentVResponse).collect(Collectors.toList());
+        .map(this::getDocumentVResponseLazy).collect(Collectors.toList());
   }
 
-  private DocumentVResponse getDocumentVResponse(DocumentV documentV) {
+  @Override
+  public List<DocumentVResponse> findAllDocumentEager() {
+    return documentVRepo.findAll().stream()
+        .map(this::getDocumentVResponseEager).collect(Collectors.toList());
+  }
+
+  @Override
+  public List<Chapter> findAllChapters() {
+    return null;
+  }
+
+  private DocumentVResponse getDocumentVResponseLazy(DocumentV documentV) {
     return DocumentVResponse.builder()
         .author(documentV.getAuthor())
         .title(documentV.getTitle())
         .description(documentV.getDescription())
-        .chapters(getChapterResponses(documentV))
+        .chapterIds(getChapterResponsesLazy(documentV))
         .build();
   }
 
-  private ChapterResponse getChapterResponse(Chapter chapter) {
-    return ChapterResponse.builder()
-        .chapterTitle(chapter.getChapterTitle())
-        .content(chapter.getContent())
+  private DocumentVResponse getDocumentVResponseEager(DocumentV documentV) {
+    return DocumentVResponse.builder()
+        .author(documentV.getAuthor())
+        .title(documentV.getTitle())
+        .description(documentV.getDescription())
+        .chapterIds(getChapterResponsesLazy(documentV))
+        .chapters(getChapterResponsesEager(documentV))
         .build();
   }
 
-  private List<ChapterResponse> getChapterResponses(DocumentV documentV) {
-    return documentV.getChapters() != null ?
-        documentV.getChapters().stream().map(this::getChapterResponse).collect(Collectors.toList())
-        : Collections.emptyList();
+
+  private Set<String> getChapterResponsesLazy(DocumentV documentV) {
+    return documentV.getChaptersIds() != null ?
+        documentV.getChaptersIds()
+        : Collections.emptySet();
+  }
+
+  private Set<ChapterResponse> getChapterResponsesEager(DocumentV documentV) {
+    if (documentV.getChaptersIds() != null) {
+      return documentV.getChaptersIds().stream()
+          .map(chapterRepo::findById)
+          .filter(Optional::isPresent).map(Optional::get)
+          .map(a -> ChapterResponse.builder()
+              .chapterTitle(a.getChapterTitle())
+              .content(a.getContent())
+              .build())
+          .collect(Collectors.toSet());
+    }
+    return Collections.emptySet();
   }
 }
