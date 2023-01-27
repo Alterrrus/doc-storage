@@ -4,16 +4,18 @@ import java.util.List;
 import org.voidst.docstorage.domain.Chapter;
 import org.voidst.docstorage.domain.DocumentV;
 import org.voidst.docstorage.dto.ChapterRequest;
+import org.voidst.docstorage.dto.ChapterResponse;
 import org.voidst.docstorage.dto.DocumentVRequest;
 import org.voidst.docstorage.dto.DocumentVResponse;
 
 public interface DocumentVService {
-  DocumentV createDocumentV(DocumentVRequest request);
-  Chapter createChapter(String documentId, ChapterRequest chapterRequest);
+  DocumentVResponse createDocumentV(DocumentVRequest request);
+  ChapterResponse createChapter(String documentId, ChapterRequest chapterRequest);
   List<DocumentVResponse> findAllDocumentLazy();
 
-  List<Chapter> findAllChapters();
+  DocumentVResponse findById(String documentId);
 
-  List<DocumentVResponse> findAllDocumentEager();
+  ChapterResponse findChapterByIdAndDocumentId(String documentId, String ChapterId);
 
+  List<ChapterResponse> findAllChapterByDocumentId(String documentId);
 }

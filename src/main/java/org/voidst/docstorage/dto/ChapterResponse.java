@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ChapterResponse {
+  private String id;
   private String chapterTitle;
   private String content;
+  private String documentId;
 }

@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class DocumentVRequest {
+  private String id;
   private String author;
   private String description;
   private String title;
