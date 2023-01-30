@@ -18,4 +18,5 @@ public interface DocumentVService {
   ChapterResponse findChapterByIdAndDocumentId(String documentId, String ChapterId);
 
   List<ChapterResponse> findAllChapterByDocumentId(String documentId);
+  DocumentVResponse updateDocumentV(String documentId, DocumentVRequest request);
 }

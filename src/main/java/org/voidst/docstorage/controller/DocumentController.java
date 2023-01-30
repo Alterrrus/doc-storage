@@ -36,6 +36,13 @@ public class DocumentController {
     return documentVRepresentationModelAssembler.toModel(document);
   }
 
+  @ResponseStatus(HttpStatus.OK)
+  @RequestMapping(method = RequestMethod.PUT, path = "/{documentId}")
+  public EntityModel<DocumentVResponse> updateDocument(@PathVariable String documentId, @RequestBody DocumentVRequest requestBody) {
+    DocumentVResponse document = documentVServiceImpl.updateDocumentV(documentId, requestBody);
+    return documentVRepresentationModelAssembler.toModel(document);
+  }
+
   @ResponseStatus(HttpStatus.CREATED)
   @RequestMapping(method = RequestMethod.POST, path = "/{documentId}")
   public EntityModel<ChapterResponse> createChapter(@PathVariable String documentId, @RequestBody ChapterRequest chapterRequest, HttpServletResponse response,

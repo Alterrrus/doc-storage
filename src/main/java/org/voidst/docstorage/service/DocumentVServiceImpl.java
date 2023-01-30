@@ -10,6 +10,9 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.voidst.docstorage.domain.Chapter;
@@ -41,6 +44,27 @@ public class DocumentVServiceImpl implements DocumentVService {
     DocumentV doc = null;
     try {
       doc = documentVRepo.save(documentV);
+    } catch (Exception e) {
+      log.error("", e);
+    }
+    if (doc != null) {
+      return dtoMapper.getDocumentVResponse(doc);
+    }
+    return null;
+  }
+  @Override
+  //@CachePut(value = "document", key = "#documentId")
+  public DocumentVResponse updateDocumentV(String documentId, DocumentVRequest request) {
+    DocumentV documentV = DocumentV.builder()
+        .id(documentId)
+        .title(request.getTitle())
+        .description(request.getDescription())
+        .author(request.getAuthor())
+        .build();
+    DocumentV doc = null;
+    try {
+      if (documentV!=null){
+      doc = documentVRepo.save(documentV);}
     } catch (Exception e) {
       log.error("", e);
     }
@@ -92,6 +116,7 @@ public class DocumentVServiceImpl implements DocumentVService {
   }
 
   @Override
+  @Cacheable(value = "document",key = "#documentId")
   public DocumentVResponse findById(String documentId) {
     Optional<DocumentV> document = documentVRepo.findById(documentId);
     return document.map(documentV -> dtoMapper.getDocumentVResponseLazy(documentV)).orElse(null);
