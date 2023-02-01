@@ -10,8 +10,6 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,24 +50,58 @@ public class DocumentVServiceImpl implements DocumentVService {
     }
     return null;
   }
+
   @Override
-  //@CachePut(value = "document", key = "#documentId")
+  @Transactional
   public DocumentVResponse updateDocumentV(String documentId, DocumentVRequest request) {
-    DocumentV documentV = DocumentV.builder()
-        .id(documentId)
-        .title(request.getTitle())
-        .description(request.getDescription())
-        .author(request.getAuthor())
+    Optional<DocumentV> findDocument = documentVRepo.findById(documentId);
+    if (findDocument.isPresent()) {
+      DocumentV temp = findDocument.get();
+      if (request.getAuthor() != null) {
+        temp.setAuthor(request.getAuthor());
+      }
+      if (request.getTitle() != null) {
+        temp.setTitle(request.getTitle());
+      }
+      if (request.getDescription() != null) {
+        temp.setDescription(request.getDescription());
+      }
+
+      DocumentV doc = null;
+      try {
+        doc = documentVRepo.save(temp);
+      } catch (Exception e) {
+        log.error("", e);
+      }
+      if (doc != null) {
+        return dtoMapper.getDocumentVResponse(doc);
+      }
+    }
+    return null;
+  }
+
+  @Override
+  public ChapterResponse updateChapter(String documentId, String chapterId, ChapterRequest chapterRequest) {
+    Chapter chapter = Chapter.builder()
+        .documentId(documentId)
+        .id(chapterId)
         .build();
-    DocumentV doc = null;
+    if (chapterRequest.getChapterTitle() != null) {
+      chapter.setChapterTitle(chapterRequest.getChapterTitle());
+    }
+    if (chapterRequest.getContent() != null) {
+      chapter.setContent(chapterRequest.getContent());
+    }
+    Chapter ch = null;
     try {
-      if (documentV!=null){
-      doc = documentVRepo.save(documentV);}
+      if (chapter != null) {
+        ch = chapterRepo.save(chapter);
+      }
     } catch (Exception e) {
       log.error("", e);
     }
-    if (doc != null) {
-      return dtoMapper.getDocumentVResponse(doc);
+    if (ch != null) {
+      return dtoMapper.getChapterResponse(ch);
     }
     return null;
   }
@@ -116,7 +148,7 @@ public class DocumentVServiceImpl implements DocumentVService {
   }
 
   @Override
-  @Cacheable(value = "document",key = "#documentId")
+  //@Cacheable(value = "document", key = "#documentId")
   public DocumentVResponse findById(String documentId) {
     Optional<DocumentV> document = documentVRepo.findById(documentId);
     return document.map(documentV -> dtoMapper.getDocumentVResponseLazy(documentV)).orElse(null);

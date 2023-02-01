@@ -1,7 +1,5 @@
 package org.voidst.docstorage.controller;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
@@ -31,6 +29,7 @@ public class DocumentController {
 
   @ResponseStatus(HttpStatus.CREATED)
   @RequestMapping(method = RequestMethod.POST)
+
   public EntityModel<DocumentVResponse> createDocument(@RequestBody DocumentVRequest requestBody) {
     DocumentVResponse document = documentVServiceImpl.createDocumentV(requestBody);
     return documentVRepresentationModelAssembler.toModel(document);
@@ -45,9 +44,14 @@ public class DocumentController {
 
   @ResponseStatus(HttpStatus.CREATED)
   @RequestMapping(method = RequestMethod.POST, path = "/{documentId}")
-  public EntityModel<ChapterResponse> createChapter(@PathVariable String documentId, @RequestBody ChapterRequest chapterRequest, HttpServletResponse response,
-      HttpServletRequest request) {
+  public EntityModel<ChapterResponse> createChapter(@PathVariable String documentId, @RequestBody ChapterRequest chapterRequest) {
     ChapterResponse chapter = documentVServiceImpl.createChapter(documentId, chapterRequest);
+    return chapterRepresentationModelAssembler.toModel(chapter);
+  }
+  @ResponseStatus(HttpStatus.OK)
+  @RequestMapping(method = RequestMethod.PUT, path = "/{documentId}/chapters/{chapterId}")
+  public EntityModel<ChapterResponse> updateChapter(@PathVariable String documentId, @PathVariable String chapterId, @RequestBody ChapterRequest chapterRequest) {
+    ChapterResponse chapter = documentVServiceImpl.updateChapter(documentId, chapterId, chapterRequest);
     return chapterRepresentationModelAssembler.toModel(chapter);
   }
 

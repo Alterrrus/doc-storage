@@ -1,8 +1,6 @@
 package org.voidst.docstorage.service;
 
 import java.util.List;
-import org.voidst.docstorage.domain.Chapter;
-import org.voidst.docstorage.domain.DocumentV;
 import org.voidst.docstorage.dto.ChapterRequest;
 import org.voidst.docstorage.dto.ChapterResponse;
 import org.voidst.docstorage.dto.DocumentVRequest;
@@ -19,4 +17,6 @@ public interface DocumentVService {
 
   List<ChapterResponse> findAllChapterByDocumentId(String documentId);
   DocumentVResponse updateDocumentV(String documentId, DocumentVRequest request);
+
+  ChapterResponse updateChapter(String documentId, String chapterId, ChapterRequest chapterRequest);
 }
