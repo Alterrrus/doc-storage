@@ -3,7 +3,12 @@ package org.voidst.docstorage.hateoas;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.Link;
 import org.springframework.hateoas.server.RepresentationModelAssembler;
 import org.springframework.stereotype.Component;
 import org.voidst.docstorage.controller.DocumentController;
@@ -14,8 +19,13 @@ public class DocumentVRepresentationModelAssembler implements RepresentationMode
 
   @Override
   public EntityModel<DocumentVResponse> toModel(DocumentVResponse entity) {
-    return EntityModel.of(entity,
-        linkTo(methodOn(DocumentController.class).getLazyDocument(entity.getId())).withSelfRel());
-
+    if (entity.getChapterIds() != null) {
+      List<Link> linksList = entity.getChapterIds().stream().map(chapterId -> linkTo(methodOn(DocumentController.class).getChapter(entity.getId(), chapterId)).withSelfRel())
+          .collect(Collectors.toList());
+      linksList.add(0, linkTo(methodOn(DocumentController.class).getLazyDocument(entity.getId())).withSelfRel());
+      Link[] links = linksList.toArray(new Link[0]);
+      return EntityModel.of(entity, links);
+    }
+    return EntityModel.of(entity, linkTo(methodOn(DocumentController.class).getLazyDocument(entity.getId())).withSelfRel());
   }
 }

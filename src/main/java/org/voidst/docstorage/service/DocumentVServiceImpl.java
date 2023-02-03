@@ -66,7 +66,6 @@ public class DocumentVServiceImpl implements DocumentVService {
       if (request.getDescription() != null) {
         temp.setDescription(request.getDescription());
       }
-
       DocumentV doc = null;
       try {
         doc = documentVRepo.save(temp);
@@ -82,26 +81,24 @@ public class DocumentVServiceImpl implements DocumentVService {
 
   @Override
   public ChapterResponse updateChapter(String documentId, String chapterId, ChapterRequest chapterRequest) {
-    Chapter chapter = Chapter.builder()
-        .documentId(documentId)
-        .id(chapterId)
-        .build();
-    if (chapterRequest.getChapterTitle() != null) {
-      chapter.setChapterTitle(chapterRequest.getChapterTitle());
-    }
-    if (chapterRequest.getContent() != null) {
-      chapter.setContent(chapterRequest.getContent());
-    }
-    Chapter ch = null;
-    try {
-      if (chapter != null) {
-        ch = chapterRepo.save(chapter);
+    Optional<Chapter> findChapter = chapterRepo.findById(chapterId);
+    if (findChapter.isPresent()) {
+      Chapter temp = findChapter.get();
+      if (chapterRequest.getChapterTitle() != null) {
+        temp.setChapterTitle(chapterRequest.getChapterTitle());
       }
-    } catch (Exception e) {
-      log.error("", e);
-    }
-    if (ch != null) {
-      return dtoMapper.getChapterResponse(ch);
+      if (chapterRequest.getContent() != null) {
+        temp.setContent(chapterRequest.getContent());
+      }
+      Chapter ch = null;
+      try {
+        ch = chapterRepo.save(temp);
+      } catch (Exception e) {
+        log.error("", e);
+      }
+      if (ch != null) {
+        return dtoMapper.getChapterResponse(ch);
+      }
     }
     return null;
   }
