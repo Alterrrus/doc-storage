@@ -1,12 +1,14 @@
 package org.voidst.docstorage.controller;
 
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,6 +25,7 @@ import org.voidst.docstorage.hateoas.DocumentVRepresentationModelAssembler;
 import org.voidst.docstorage.service.DocumentVService;
 
 @RestController
+@Slf4j
 @RequestMapping(value = "/doc")
 public class DocumentController {
 
@@ -73,10 +76,21 @@ public class DocumentController {
   }
 
   @RequestMapping(method = RequestMethod.GET)
+  @CrossOrigin(origins = "http://localhost:3000")
   CollectionModel<EntityModel<DocumentVResponse>> getAllDocuments(@RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "5") int size) {
     Page<DocumentVResponse> list = documentVServiceImpl.findAllDocumentLazy(page, size);
+    log.info(String.format("invoke localhost getAllDocuments size: %s", list.getTotalPages()));
     return pagedResourcesAssembler.toModel(list, documentVRepresentationModelAssembler);
+  }
+
+  @RequestMapping(method = RequestMethod.GET,value = "/test")
+  @CrossOrigin(origins = "http://localhost:3000")
+  List<DocumentVResponse> getAllDocumentsTest(@RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "5") int size) {
+    Page<DocumentVResponse> list = documentVServiceImpl.findAllDocumentLazy(page, size);
+    log.info(String.format("invoke localhost getAllDocuments size: %s", list.getTotalPages()));
+    return documentVServiceImpl.findAllDocumentLazy(page,size).getContent();
   }
 
   @RequestMapping(value = "/{documentId}/chapters", method = RequestMethod.GET)
