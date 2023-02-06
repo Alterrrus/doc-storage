@@ -10,7 +10,9 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.voidst.docstorage.domain.Chapter;
@@ -139,8 +141,22 @@ public class DocumentVServiceImpl implements DocumentVService {
 
 
   @Override
-  public List<DocumentVResponse> findAllDocumentLazy() {
-    return documentVRepo.findAll().stream()
+  public Page<DocumentVResponse> findAllDocumentLazy(int page, int size) {
+    Pageable pageable = PageRequest.of(page,size);
+    return documentVRepo.findAll(pageable).map(a->dtoMapper.getDocumentVResponseLazy(a));
+
+  }
+
+  @Override
+  public List<DocumentVResponse> findAllDocumentPageable(int page, int size) {
+    Pageable pageable = PageRequest.of(page,size);
+    Page<DocumentV> pageResult =  documentVRepo.findAll(pageable);
+    pageResult.getContent()
+        .stream()
+        .map(doc -> dtoMapper.getDocumentVResponseLazy(doc)).collect(Collectors.toList());
+    return documentVRepo.findAll(pageable)
+
+        .stream()
         .map(doc -> dtoMapper.getDocumentVResponseLazy(doc)).collect(Collectors.toList());
   }
 

@@ -2,6 +2,8 @@ package org.voidst.docstorage.controller;
 
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
@@ -9,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.voidst.docstorage.dto.ChapterRequest;
@@ -26,6 +29,7 @@ public class DocumentController {
   private DocumentVService documentVServiceImpl;
   private DocumentVRepresentationModelAssembler documentVRepresentationModelAssembler;
   private ChapterRepresentationModelAssembler chapterRepresentationModelAssembler;
+  private PagedResourcesAssembler<DocumentVResponse> pagedResourcesAssembler;
 
   @ResponseStatus(HttpStatus.CREATED)
   @RequestMapping(method = RequestMethod.POST)
@@ -48,6 +52,7 @@ public class DocumentController {
     ChapterResponse chapter = documentVServiceImpl.createChapter(documentId, chapterRequest);
     return chapterRepresentationModelAssembler.toModel(chapter);
   }
+
   @ResponseStatus(HttpStatus.OK)
   @RequestMapping(method = RequestMethod.PUT, path = "/{documentId}/chapters/{chapterId}")
   public EntityModel<ChapterResponse> updateChapter(@PathVariable String documentId, @PathVariable String chapterId, @RequestBody ChapterRequest chapterRequest) {
@@ -68,9 +73,10 @@ public class DocumentController {
   }
 
   @RequestMapping(method = RequestMethod.GET)
-  CollectionModel<EntityModel<DocumentVResponse>> getAllDocuments() {
-    List<DocumentVResponse> list = documentVServiceImpl.findAllDocumentLazy();
-    return documentVRepresentationModelAssembler.toCollectionModel(list);
+  CollectionModel<EntityModel<DocumentVResponse>> getAllDocuments(@RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "5") int size) {
+    Page<DocumentVResponse> list = documentVServiceImpl.findAllDocumentLazy(page, size);
+    return pagedResourcesAssembler.toModel(list, documentVRepresentationModelAssembler);
   }
 
   @RequestMapping(value = "/{documentId}/chapters", method = RequestMethod.GET)
@@ -92,5 +98,9 @@ public class DocumentController {
   @Autowired
   public void setChapterRepresentationModelAssembler(ChapterRepresentationModelAssembler chapterRepresentationModelAssembler) {
     this.chapterRepresentationModelAssembler = chapterRepresentationModelAssembler;
+  }
+  @Autowired
+  public void setPagedResourcesAssembler(PagedResourcesAssembler<DocumentVResponse> pagedResourcesAssembler) {
+    this.pagedResourcesAssembler = pagedResourcesAssembler;
   }
 }
