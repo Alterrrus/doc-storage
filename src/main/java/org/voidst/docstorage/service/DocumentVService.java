@@ -10,7 +10,6 @@ import org.voidst.docstorage.dto.DocumentVResponse;
 public interface DocumentVService {
   DocumentVResponse createDocumentV(DocumentVRequest request);
   ChapterResponse createChapter(String documentId, ChapterRequest chapterRequest);
-  Page<DocumentVResponse> findAllDocumentLazy(int page, int size);
 
   DocumentVResponse findById(String documentId);
 
@@ -20,5 +19,5 @@ public interface DocumentVService {
   DocumentVResponse updateDocumentV(String documentId, DocumentVRequest request);
 
   ChapterResponse updateChapter(String documentId, String chapterId, ChapterRequest chapterRequest);
-  List<DocumentVResponse> findAllDocumentPageable(int page, int size);
+  Page<DocumentVResponse> findDocumentByParameter(int page, int size, String author, String title);
 }

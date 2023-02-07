@@ -78,19 +78,11 @@ public class DocumentController {
   @RequestMapping(method = RequestMethod.GET)
   @CrossOrigin(origins = "http://localhost:3000")
   CollectionModel<EntityModel<DocumentVResponse>> getAllDocuments(@RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "5") int size) {
-    Page<DocumentVResponse> list = documentVServiceImpl.findAllDocumentLazy(page, size);
+      @RequestParam(defaultValue = "5") int size, @RequestParam(required = false) String author,
+      @RequestParam(required = false) String title) {
+    Page<DocumentVResponse> list = documentVServiceImpl.findDocumentByParameter(page, size, author, title);
     log.info(String.format("invoke localhost getAllDocuments size: %s", list.getTotalPages()));
     return pagedResourcesAssembler.toModel(list, documentVRepresentationModelAssembler);
-  }
-
-  @RequestMapping(method = RequestMethod.GET,value = "/test")
-  @CrossOrigin(origins = "http://localhost:3000")
-  List<DocumentVResponse> getAllDocumentsTest(@RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "5") int size) {
-    Page<DocumentVResponse> list = documentVServiceImpl.findAllDocumentLazy(page, size);
-    log.info(String.format("invoke localhost getAllDocuments size: %s", list.getTotalPages()));
-    return documentVServiceImpl.findAllDocumentLazy(page,size).getContent();
   }
 
   @RequestMapping(value = "/{documentId}/chapters", method = RequestMethod.GET)
@@ -113,6 +105,7 @@ public class DocumentController {
   public void setChapterRepresentationModelAssembler(ChapterRepresentationModelAssembler chapterRepresentationModelAssembler) {
     this.chapterRepresentationModelAssembler = chapterRepresentationModelAssembler;
   }
+
   @Autowired
   public void setPagedResourcesAssembler(PagedResourcesAssembler<DocumentVResponse> pagedResourcesAssembler) {
     this.pagedResourcesAssembler = pagedResourcesAssembler;

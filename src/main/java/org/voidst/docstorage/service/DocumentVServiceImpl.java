@@ -139,25 +139,19 @@ public class DocumentVServiceImpl implements DocumentVService {
     return null;
   }
 
-
   @Override
-  public Page<DocumentVResponse> findAllDocumentLazy(int page, int size) {
-    Pageable pageable = PageRequest.of(page,size);
-    return documentVRepo.findAll(pageable).map(a->dtoMapper.getDocumentVResponseLazy(a));
-
-  }
-
-  @Override
-  public List<DocumentVResponse> findAllDocumentPageable(int page, int size) {
-    Pageable pageable = PageRequest.of(page,size);
-    Page<DocumentV> pageResult =  documentVRepo.findAll(pageable);
-    pageResult.getContent()
-        .stream()
-        .map(doc -> dtoMapper.getDocumentVResponseLazy(doc)).collect(Collectors.toList());
-    return documentVRepo.findAll(pageable)
-
-        .stream()
-        .map(doc -> dtoMapper.getDocumentVResponseLazy(doc)).collect(Collectors.toList());
+  public Page<DocumentVResponse> findDocumentByParameter(int page, int size, String author, String title) {
+    Pageable pageable = PageRequest.of(page, size);
+    if (author != null && title != null) {
+      return documentVRepo.findByAuthorAndTitle(author, title, pageable).map(a -> dtoMapper.getDocumentVResponseLazy(a));
+    }
+    if (title != null) {
+      return documentVRepo.findByTitle(title, pageable).map(a -> dtoMapper.getDocumentVResponseLazy(a));
+    }
+    if (author != null) {
+      return documentVRepo.findByAuthor(author, pageable).map(a -> dtoMapper.getDocumentVResponseLazy(a));
+    }
+    return documentVRepo.findAll(pageable).map(a -> dtoMapper.getDocumentVResponseLazy(a));
   }
 
   @Override
