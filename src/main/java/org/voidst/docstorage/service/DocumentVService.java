@@ -11,7 +11,7 @@ public interface DocumentVService {
   DocumentVResponse createDocumentV(DocumentVRequest request);
   ChapterResponse createChapter(String documentId, ChapterRequest chapterRequest);
 
-  DocumentVResponse findById(String documentId);
+  DocumentVResponse findDocumentById(String documentId);
 
   ChapterResponse findChapterByIdAndDocumentId(String documentId, String ChapterId);
 
@@ -19,5 +19,5 @@ public interface DocumentVService {
   DocumentVResponse updateDocumentV(String documentId, DocumentVRequest request);
 
   ChapterResponse updateChapter(String documentId, String chapterId, ChapterRequest chapterRequest);
-  Page<DocumentVResponse> findDocumentByParameter(int page, int size, String author, String title);
+  Page<DocumentVResponse> findDocumentsByParameter(int page, int size, String author, String title);
 }

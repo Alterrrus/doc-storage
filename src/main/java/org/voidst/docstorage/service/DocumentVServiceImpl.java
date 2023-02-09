@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -48,7 +49,7 @@ public class DocumentVServiceImpl implements DocumentVService {
       log.error("", e);
     }
     if (doc != null) {
-      return dtoMapper.getDocumentVResponse(doc);
+      return dtoMapper.getDocumentVResponseLazy(doc);
     }
     return null;
   }
@@ -75,7 +76,7 @@ public class DocumentVServiceImpl implements DocumentVService {
         log.error("", e);
       }
       if (doc != null) {
-        return dtoMapper.getDocumentVResponse(doc);
+        return dtoMapper.getDocumentVResponseLazy(doc);
       }
     }
     return null;
@@ -110,6 +111,7 @@ public class DocumentVServiceImpl implements DocumentVService {
   public ChapterResponse createChapter(String documentId, ChapterRequest chapterRequest) {
     Optional<DocumentV> documentV = documentVRepo.findById(documentId);
     AtomicReference<Chapter> chapter = new AtomicReference<>();
+    AtomicReference<Chapter> savedChapter = new AtomicReference<>();
     try {
       documentV.ifPresent(document -> {
             chapter.set(Chapter.builder()
@@ -117,13 +119,13 @@ public class DocumentVServiceImpl implements DocumentVService {
                 .content(chapterRequest.getContent())
                 .documentId(document.getId())
                 .build());
-            chapterRepo.save(chapter.get());
+            savedChapter.set(chapterRepo.save(chapter.get()));
             Set<String> set = document.getChaptersIds();
-            if (set != null && !set.isEmpty()) {
-              set.add(chapter.get().getId());
+            if (CollectionUtils.isNotEmpty(set)) {
+              set.add(savedChapter.get().getId());
             } else {
               set = new LinkedHashSet<>();
-              set.add(chapter.get().getId());
+              set.add(savedChapter.get().getId());
             }
             document.setChaptersIds(set);
             documentVRepo.save(document);
@@ -132,7 +134,7 @@ public class DocumentVServiceImpl implements DocumentVService {
     } catch (Exception e) {
       log.error("", e);
     }
-    Chapter result = chapter.get();
+    Chapter result = savedChapter.get();
     if (result != null) {
       return dtoMapper.getChapterResponse(result);
     }
@@ -140,7 +142,7 @@ public class DocumentVServiceImpl implements DocumentVService {
   }
 
   @Override
-  public Page<DocumentVResponse> findDocumentByParameter(int page, int size, String author, String title) {
+  public Page<DocumentVResponse> findDocumentsByParameter(int page, int size, String author, String title) {
     Pageable pageable = PageRequest.of(page, size);
     if (author != null && title != null) {
       return documentVRepo.findByAuthorAndTitle(author, title, pageable).map(a -> dtoMapper.getDocumentVResponseLazy(a));
@@ -156,7 +158,7 @@ public class DocumentVServiceImpl implements DocumentVService {
 
   @Override
   //@Cacheable(value = "document", key = "#documentId")
-  public DocumentVResponse findById(String documentId) {
+  public DocumentVResponse findDocumentById(String documentId) {
     Optional<DocumentV> document = documentVRepo.findById(documentId);
     return document.map(documentV -> dtoMapper.getDocumentVResponseLazy(documentV)).orElse(null);
   }
@@ -164,7 +166,7 @@ public class DocumentVServiceImpl implements DocumentVService {
   @Override
   public List<ChapterResponse> findAllChapterByDocumentId(String documentId) {
     List<Chapter> list = chapterRepo.findAllChapterByDocumentId(documentId);
-    if (list != null && !list.isEmpty()) {
+    if (CollectionUtils.isNotEmpty(list)) {
       return list.stream().map(chapter -> dtoMapper.getChapterResponse(chapter)).collect(Collectors.toList());
     }
     return Collections.emptyList();
