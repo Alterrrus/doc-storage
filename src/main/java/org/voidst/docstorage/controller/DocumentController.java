@@ -65,7 +65,7 @@ public class DocumentController {
 
   @RequestMapping(method = RequestMethod.GET, path = "/{documentId}")
   public EntityModel<DocumentVResponse> getLazyDocument(@PathVariable String documentId) {
-    DocumentVResponse document = documentVServiceImpl.findById(documentId);
+    DocumentVResponse document = documentVServiceImpl.findDocumentById(documentId);
     return documentVRepresentationModelAssembler.toModel(document);
   }
 
@@ -80,7 +80,7 @@ public class DocumentController {
   CollectionModel<EntityModel<DocumentVResponse>> getAllDocuments(@RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "5") int size, @RequestParam(required = false) String author,
       @RequestParam(required = false) String title) {
-    Page<DocumentVResponse> list = documentVServiceImpl.findDocumentByParameter(page, size, author, title);
+    Page<DocumentVResponse> list = documentVServiceImpl.findDocumentsByParameter(page, size, author, title);
     log.info(String.format("invoke localhost getAllDocuments size: %s", list.getTotalPages()));
     return pagedResourcesAssembler.toModel(list, documentVRepresentationModelAssembler);
   }
