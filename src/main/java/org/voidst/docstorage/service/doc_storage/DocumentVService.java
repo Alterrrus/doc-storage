@@ -1,4 +1,4 @@
-package org.voidst.docstorage.service;
+package org.voidst.docstorage.service.doc_storage;
 
 import java.util.List;
 import org.springframework.data.domain.Page;

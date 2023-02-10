@@ -22,7 +22,7 @@ import org.voidst.docstorage.dto.DocumentVRequest;
 import org.voidst.docstorage.dto.DocumentVResponse;
 import org.voidst.docstorage.hateoas.ChapterRepresentationModelAssembler;
 import org.voidst.docstorage.hateoas.DocumentVRepresentationModelAssembler;
-import org.voidst.docstorage.service.DocumentVService;
+import org.voidst.docstorage.service.doc_storage.DocumentVService;
 
 @RestController
 @Slf4j
