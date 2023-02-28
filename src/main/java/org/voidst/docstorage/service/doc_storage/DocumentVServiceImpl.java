@@ -1,16 +1,13 @@
 package org.voidst.docstorage.service.doc_storage;
 
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,10 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.voidst.docstorage.domain.Chapter;
 import org.voidst.docstorage.domain.DocumentV;
 import org.voidst.docstorage.dto.ChapterRequest;
-import org.voidst.docstorage.dto.ChapterResponse;
 import org.voidst.docstorage.dto.DocumentVRequest;
-import org.voidst.docstorage.dto.DocumentVResponse;
-import org.voidst.docstorage.dto.DtoMapper;
 import org.voidst.docstorage.repo.ChapterRepo;
 import org.voidst.docstorage.repo.DocumentVRepo;
 
@@ -33,10 +27,9 @@ public class DocumentVServiceImpl implements DocumentVService {
 
   private final ChapterRepo chapterRepo;
   private final DocumentVRepo documentVRepo;
-  private DtoMapper dtoMapper;
 
   @Override
-  public DocumentVResponse createDocumentV(DocumentVRequest request) {
+  public DocumentV createDocumentV(DocumentVRequest request) {
     DocumentV documentV = DocumentV.builder()
         .title(request.getTitle())
         .description(request.getDescription())
@@ -48,15 +41,12 @@ public class DocumentVServiceImpl implements DocumentVService {
     } catch (Exception e) {
       log.error("", e);
     }
-    if (doc != null) {
-      return dtoMapper.getDocumentVResponseLazy(doc);
-    }
-    return null;
+    return doc;
   }
 
   @Override
   @Transactional
-  public DocumentVResponse updateDocumentV(String documentId, DocumentVRequest request) {
+  public DocumentV updateDocumentV(String documentId, DocumentVRequest request) {
     Optional<DocumentV> findDocument = documentVRepo.findById(documentId);
     if (findDocument.isPresent()) {
       DocumentV temp = findDocument.get();
@@ -75,15 +65,13 @@ public class DocumentVServiceImpl implements DocumentVService {
       } catch (Exception e) {
         log.error("", e);
       }
-      if (doc != null) {
-        return dtoMapper.getDocumentVResponseLazy(doc);
-      }
+      return doc;
     }
     return null;
   }
 
   @Override
-  public ChapterResponse updateChapter(String documentId, String chapterId, ChapterRequest chapterRequest) {
+  public Chapter updateChapter(String documentId, String chapterId, ChapterRequest chapterRequest) {
     Optional<Chapter> findChapter = chapterRepo.findById(chapterId);
     if (findChapter.isPresent()) {
       Chapter temp = findChapter.get();
@@ -99,16 +87,14 @@ public class DocumentVServiceImpl implements DocumentVService {
       } catch (Exception e) {
         log.error("", e);
       }
-      if (ch != null) {
-        return dtoMapper.getChapterResponse(ch);
-      }
+      return ch;
     }
     return null;
   }
 
   @Override
   @Transactional
-  public ChapterResponse createChapter(String documentId, ChapterRequest chapterRequest) {
+  public Chapter createChapter(String documentId, ChapterRequest chapterRequest) {
     Optional<DocumentV> documentV = documentVRepo.findById(documentId);
     AtomicReference<Chapter> chapter = new AtomicReference<>();
     AtomicReference<Chapter> savedChapter = new AtomicReference<>();
@@ -134,52 +120,37 @@ public class DocumentVServiceImpl implements DocumentVService {
     } catch (Exception e) {
       log.error("", e);
     }
-    Chapter result = savedChapter.get();
-    if (result != null) {
-      return dtoMapper.getChapterResponse(result);
-    }
-    return null;
+    return savedChapter.get();
   }
 
   @Override
-  public Page<DocumentVResponse> findDocumentsByParameter(int page, int size, String author, String title) {
+  public Page<DocumentV> findDocumentsByParameter(int page, int size, String author, String title) {
     Pageable pageable = PageRequest.of(page, size);
     if (author != null && title != null) {
-      return documentVRepo.findByAuthorAndTitle(author, title, pageable).map(a -> dtoMapper.getDocumentVResponseLazy(a));
+      return documentVRepo.findByAuthorAndTitle(author, title, pageable);
     }
     if (title != null) {
-      return documentVRepo.findByTitle(title, pageable).map(a -> dtoMapper.getDocumentVResponseLazy(a));
+      return documentVRepo.findByTitle(title, pageable);
     }
     if (author != null) {
-      return documentVRepo.findByAuthor(author, pageable).map(a -> dtoMapper.getDocumentVResponseLazy(a));
+      return documentVRepo.findByAuthor(author, pageable);
     }
-    return documentVRepo.findAll(pageable).map(a -> dtoMapper.getDocumentVResponseLazy(a));
+    return documentVRepo.findAll(pageable);
   }
 
   @Override
   //@Cacheable(value = "document", key = "#documentId")
-  public DocumentVResponse findDocumentById(String documentId) {
-    Optional<DocumentV> document = documentVRepo.findById(documentId);
-    return document.map(documentV -> dtoMapper.getDocumentVResponseLazy(documentV)).orElse(null);
+  public Optional<DocumentV> findDocumentById(String documentId) {
+    return documentVRepo.findById(documentId);
   }
 
   @Override
-  public List<ChapterResponse> findAllChapterByDocumentId(String documentId) {
-    List<Chapter> list = chapterRepo.findAllChapterByDocumentId(documentId);
-    if (CollectionUtils.isNotEmpty(list)) {
-      return list.stream().map(chapter -> dtoMapper.getChapterResponse(chapter)).collect(Collectors.toList());
-    }
-    return Collections.emptyList();
+  public List<Chapter> findAllChapterByDocumentId(String documentId) {
+    return chapterRepo.findAllChapterByDocumentId(documentId);
   }
 
   @Override
-  public ChapterResponse findChapterByIdAndDocumentId(String chapterId, String documentId) {
-    Chapter chapter = chapterRepo.findByIdAndDocumentId(chapterId, documentId);
-    return dtoMapper.getChapterResponse(chapter);
-  }
-
-  @Autowired
-  public void setDtoMapper(DtoMapper dtoMapper) {
-    this.dtoMapper = dtoMapper;
+  public Chapter findChapterByIdAndDocumentId(String chapterId, String documentId) {
+    return chapterRepo.findByIdAndDocumentId(chapterId, documentId);
   }
 }

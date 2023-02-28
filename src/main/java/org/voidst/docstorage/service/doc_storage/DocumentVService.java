@@ -1,23 +1,28 @@
 package org.voidst.docstorage.service.doc_storage;
 
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.domain.Page;
+import org.voidst.docstorage.domain.Chapter;
+import org.voidst.docstorage.domain.DocumentV;
 import org.voidst.docstorage.dto.ChapterRequest;
-import org.voidst.docstorage.dto.ChapterResponse;
 import org.voidst.docstorage.dto.DocumentVRequest;
-import org.voidst.docstorage.dto.DocumentVResponse;
 
 public interface DocumentVService {
-  DocumentVResponse createDocumentV(DocumentVRequest request);
-  ChapterResponse createChapter(String documentId, ChapterRequest chapterRequest);
 
-  DocumentVResponse findDocumentById(String documentId);
+  DocumentV createDocumentV(DocumentVRequest request);
 
-  ChapterResponse findChapterByIdAndDocumentId(String documentId, String ChapterId);
+  Chapter createChapter(String documentId, ChapterRequest chapterRequest);
 
-  List<ChapterResponse> findAllChapterByDocumentId(String documentId);
-  DocumentVResponse updateDocumentV(String documentId, DocumentVRequest request);
+  Optional<DocumentV> findDocumentById(String documentId);
 
-  ChapterResponse updateChapter(String documentId, String chapterId, ChapterRequest chapterRequest);
-  Page<DocumentVResponse> findDocumentsByParameter(int page, int size, String author, String title);
+  Chapter findChapterByIdAndDocumentId(String documentId, String ChapterId);
+
+  List<Chapter> findAllChapterByDocumentId(String documentId);
+
+  DocumentV updateDocumentV(String documentId, DocumentVRequest request);
+
+  Chapter updateChapter(String documentId, String chapterId, ChapterRequest chapterRequest);
+
+  Page<DocumentV> findDocumentsByParameter(int page, int size, String author, String title);
 }
